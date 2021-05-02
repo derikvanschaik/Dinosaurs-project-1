@@ -1,32 +1,58 @@
+class Human{
+    constructor(name, feet, inches, weight, diet){
+        this.name = name;
+        this.height = Number(feet) + Number(inches)/12;
+        this.weight = Number(weight);
+        this.diet = diet;
+    }
+    introduce(){
+        return `hello I am ${this.name} and i am a ${this.diet}`; 
+    }
 
-    // Create Dino Constructor
+}
 
+function getValue(id){
+    const val = document.getElementById(id).value;
+    return val;
+}
 
-    // Create Dino Objects
+function getHuman(){
+    const name = getValue('name');
+    const feet = getValue('feet');
+    const inches = getValue('inches');
+    const weight = getValue('weight');
+    const diet = getValue('diet'); 
+    return new Human(name, feet, inches, weight, diet); 
+}
 
+function hideForm(){
+    document.getElementById('dino-compare').style.display = 'none';
+}
 
-    // Create Human Object
+function makeTile(text){
+    const grid = document.getElementById('grid'); 
+    let newTile = document.createElement('div');
+    let tileText = document.createTextNode(text);
+    newTile.append(tileText);
+    grid.append(newTile); 
 
-    // Use IIFE to get human data from form
+}
 
+function loadNewPage(vals, ids){
+    const human = getHuman();
+    hideForm(); 
+    makeTile(human.introduce());
+}
 
-    // Create Dino Compare Method 1
-    // NOTE: Weight in JSON file is in lbs, height in inches. 
+const validField = (field) => {return field.length > 0}; 
 
-    
-    // Create Dino Compare Method 2
-    // NOTE: Weight in JSON file is in lbs, height in inches.
+const submitButton = document.getElementById('btn');
 
-    
-    // Create Dino Compare Method 3
-    // NOTE: Weight in JSON file is in lbs, height in inches.
+submitButton.addEventListener('click', function() {
+    const ids = ['name', 'feet', 'inches', 'weight', 'diet'];
+    const vals = ids.map(getValue);
+    if (vals.every(validField)){
+        loadNewPage();
+    }
 
-
-    // Generate Tiles for each Dino in Array
-  
-        // Add tiles to DOM
-
-    // Remove form from screen
-
-
-// On button click, prepare and display infographic
+});
