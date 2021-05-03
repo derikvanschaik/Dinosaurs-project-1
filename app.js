@@ -77,7 +77,24 @@ function getDinoObjects(){
     return dino['Dinos']; 
 }
 
-const dinos = getDinoObjects();
+
+class Dinosaur{
+    constructor(species, weight, height, diet, where, when, fact){
+        this.name = species;
+        this.weight = Number(weight);
+        this.height = Number(height);
+        this.diet = diet;
+        this.where = where;
+        this.when = when;
+        this.fact = fact;
+        this.image = species.toLowerCase() +'png';  
+    }
+    introduce(){
+        return `hello I am a ${this.name} and i am a ${this.diet}`; 
+    }
+
+
+}
 
 class Human{
     constructor(name, feet, inches, weight, diet, image){
@@ -107,6 +124,13 @@ function getHuman(){
     const image = 'human.png'; 
     return new Human(name, feet, inches, weight, diet, image);
 }
+function getDinosaurs(){
+    const dinos = getDinoObjects(); //get the json as a list
+    const dinoObjects = dinos.map(function(dino){
+        return new Dinosaur(dino.species, dino.weight, dino.height, dino.diet, dino.where, dino.when, dino.fact); 
+    } );
+    return dinoObjects; 
+}
 
 function hideForm(){
     document.getElementById('dino-compare').style.display = 'none';
@@ -120,13 +144,18 @@ function makeTile(object){
     <h3>${object.name}</h3>
     <img src="images/${object.image}">
     `;
+    if (object instanceof Dinosaur){
+        newTile.innerHTML += `<h3>${object.fact}`; 
+    }
     grid.appendChild(newTile); 
 }
 
-function loadNewPage(vals, ids){
+function loadNewPage(){
     const human = getHuman();
-    hideForm(); 
-    makeTile(human);
+    const dinoObjects = getDinosaurs();
+    dinoObjects.forEach(
+        (dino) => {console.log(dino.introduce()) }
+        );  
 }
 
 const validField = (field) => {return field.length > 0}; 
