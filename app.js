@@ -87,7 +87,7 @@ class Dinosaur{
         this.where = where;
         this.when = when;
         this.fact = fact;
-        this.image = species.toLowerCase() +'png';  
+        this.image = species.toLowerCase() +'.png';  
     }
     introduce(){
         return `hello I am a ${this.name} and i am a ${this.diet}`; 
@@ -150,12 +150,19 @@ function makeTile(object){
     grid.appendChild(newTile); 
 }
 
+function makeTiles(dinos, human){
+    dinos.splice(4, 0, human);
+    dinos.forEach((dino) => {makeTile(dino)});
+}
+
 function loadNewPage(){
     const human = getHuman();
     const dinoObjects = getDinosaurs();
-    dinoObjects.forEach(
-        (dino) => {console.log(dino.introduce()) }
-        );  
+    hideForm(); 
+    makeTiles(dinoObjects, human); 
+    // dinoObjects.forEach(
+    //     (dino) => {console.log(dino.introduce()) }
+    //     );  
 }
 
 const validField = (field) => {return field.length > 0}; 
