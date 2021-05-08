@@ -77,9 +77,18 @@ function getDinoObjects(){
     return dino['Dinos']; 
 }
 
+class Animal{
+    constructor(name,weight, diet, image){
+        this.name = name;
+        this.weight = weight;
+        this.diet = diet;
+        this.image = image;
+    }
+}
 
-class Dinosaur{
+class Dinosaur extends Animal{
     constructor(species, weight, height, diet, where, when, fact){
+        super();
         this.name = species;
         this.weight = Number(weight);
         this.height = Number(height);
@@ -87,28 +96,55 @@ class Dinosaur{
         this.where = where;
         this.when = when;
         this.fact = fact;
-        this.image = species.toLowerCase() +'.png';  
+        this.image = species.toLowerCase() +'.png';
     }
-    introduce(){
-        return `hello I am a ${this.name} and i am a ${this.diet}`; 
+    compareHeight = function(humanHeight){
+        const heightDifference = Math.abs(Math.floor(this.height - humanHeight));
+        if (this.height >= humanHeight){
+            return `${this.name} is bigger than you by ${heightDifference} feet`;
+        }
+        return `${this.name} is smaller than you by ${heightDifference} feet`;
     }
-
-
+    compareWeight = function(humanWeight){
+        const weightDifference = Math.abs(Math.floor(this.weight - humanWeight));
+        if (this.weight >= humanWeight){
+            return `${this.name} weighs more than you by ${weightDifference} pounds`; 
+        }
+        return `You weigh more than ${this.name} by ${weightDifference} pounds`; 
+    }
+    compareDiet = function(humanDiet){
+        if (humanDiet === this.diet){
+            return `You and ${this.name} are both ${this.diet}`;
+        }
+        else{
+            return `You are a ${humanDiet}, whereas ${this.name} is a ${this.diet}.`;
+        }
+    }
+    compareName  = function(humanName){
+        if (this.name.length > humanName.length){
+            return `You have a shorter name, human`;
+        }
+        else if (this.name.length === humanName.length){
+            return `Our names our equal, human`;
+        }
+        else{
+            return `Your name is longer than mine, human >:(`;
+        }
+    }
 }
 
-class Human{
+class Human extends Animal{
     constructor(name, feet, inches, weight, diet, image){
+        super();
         this.name = name;
         this.height = Number(feet) + Number(inches)/12;
         this.weight = Number(weight);
         this.diet = diet;
-        this.image = image; 
+        this.image = image;
     }
-    introduce(){
-        return `hello I am ${this.name} and i am a ${this.diet}`; 
-    }
-
 }
+
+
 
 function getValue(id){
     const val = document.getElementById(id).value;
@@ -136,7 +172,7 @@ function hideForm(){
     document.getElementById('dino-compare').style.display = 'none';
 }
 
-function makeTile(object){
+function createTile(object){
     const grid = document.getElementById('grid');
     let newTile = document.createElement('div');
     newTile.classList.add('grid-item'); 
@@ -145,35 +181,94 @@ function makeTile(object){
     <img src="images/${object.image}">
     `;
     if (object instanceof Dinosaur){
-        newTile.innerHTML += `<h3>${object.fact}`; 
+        newTile.innerHTML += `<h3>${object.fact}
+        <h4>Click Me!</h4>`;
     }
     grid.appendChild(newTile); 
 }
 
-function makeTiles(dinos, human){
+function createTiles(dinos, human){
     dinos.splice(4, 0, human);
-    dinos.forEach((dino) => {makeTile(dino)});
+    dinos.forEach((dino) => {createTile(dino)});
 }
+
 
 function loadNewPage(){
     const human = getHuman();
     const dinoObjects = getDinosaurs();
     hideForm(); 
-    makeTiles(dinoObjects, human); 
-    // dinoObjects.forEach(
-    //     (dino) => {console.log(dino.introduce()) }
-    //     );  
+    createTiles(dinoObjects, human);
+    return dinoObjects; 
+}
+
+function getTile(childNum){
+    return document.querySelector(`.grid-item:nth-child(${childNum})`);
+}
+
+function getTiles(tileObjects){
+    const tiles = []; 
+    tileObjects.forEach(function(tile, i){
+        tiles.push(getTile(i+1)); // i + 1 due to zero indexing
+    });
+    return tiles; 
+}
+
+        
+function displayError(modal){
+    modal.style.display = "block";
+    const modalText = document.getElementById("modal-text");
+    modalText.style.color = "red";
+
+}
+function hideError(){
+    const modal = document.getElementById("myModal");
+    modal.style.display = "none"; 
 }
 
 const validField = (field) => {return field.length > 0}; 
 
 const submitButton = document.getElementById('btn');
+const modalClose = document.getElementsByClassName("close")[0];
 
 submitButton.addEventListener('click', function() {
     const ids = ['name', 'feet', 'inches', 'weight', 'diet'];
     const vals = ids.map(getValue);
     if (vals.every(validField)){
-        loadNewPage();
+        const tileObjects = loadNewPage(); // returns the modified objects that are on the 9 by 9 grid 
+        const tiles = getTiles(tileObjects);
+        const human = getHuman(); 
+
+        tiles.forEach(function(tile, i){
+            const originalHTMl = tile.innerHTML;
+            let clicked = false; 
+            tile.addEventListener('click', function(){
+                if (tileObjects[i] instanceof Dinosaur 
+                    && !clicked){
+                    tile.innerHTML = `
+                    <h3>Species: ${tileObjects[i].name}</h3>
+                    <h3>Where: ${tileObjects[i].where}</h3>
+                    <h3>When: ${tileObjects[i].when}</h3>
+                    <h3>${tileObjects[i].compareDiet(human.diet)}</h3>
+                    <h3>${tileObjects[i].compareWeight(human.weight)}</h3>
+                    <h3>${tileObjects[i].compareHeight(human.height)}</h3>
+                    `;
+                }
+                else if (tileObjects[i] && clicked){
+                    tile.innerHTML = originalHTMl; 
+
+                }
+                clicked = !clicked; 
+
+            });
+            
+
+        });
+    }
+    else{
+        const modal = document.getElementById("myModal");
+        displayError(modal);
     }
 
 });
+
+modalClose.addEventListener('click', hideError); 
