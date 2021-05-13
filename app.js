@@ -1,3 +1,4 @@
+
 function getDinoObjects(){
     dino = {"Dinos": [
         {
@@ -172,24 +173,67 @@ function hideForm(){
     document.getElementById('dino-compare').style.display = 'none';
 }
 
-function createTile(object){
+const createHTMLBanner = (type, id, text, parent) =>{
+    const htmlBanner = document.createElement("H"); 
+    htmlBanner.innerHTML = `<${type} id ="${id}">${text}</${type}>`; 
+    parent.appendChild(htmlBanner); 
+
+}
+
+const getDinoBannersInfo = (object) =>{
+    return [
+                {
+                    type: 'h2',
+                    id:  `fact-${object.name}`,
+                    text: `${object.fact}`,
+                },
+                {
+                    type: 'h3',
+                    id: `where-${object.name}`,
+                    text: `Where?`
+                },
+                {
+                    type: 'h3',
+                    id: `when-${object.name}`,
+                    text: `When?`
+                },
+                {
+                    type: 'h3',
+                    id: `compare-${object.name}`,
+                    text: `How do I compare?`
+                }
+        ]; 
+}
+
+function createTile(object, human){
     const grid = document.getElementById('grid');
     let newTile = document.createElement('div');
+    const hiddenTile = document.createElement('p');
+    hiddenTile.id = `hidden-info-${object.name}`; 
     newTile.classList.add('grid-item'); 
     newTile.innerHTML = `
-    <h3>${object.name}</h3>
-    <img src="images/${object.image}">
-    `;
+    <h3 id='name-${object.name}'>${object.name}</h3>`;
+
     if (object instanceof Dinosaur){
-        newTile.innerHTML += `<h3>${object.fact}
-        <h4>Click Me!</h4>`;
+
+        const dinoBanners = getDinoBannersInfo(object); 
+        dinoBanners.forEach((info) =>{
+            createHTMLBanner(info.type, info.id, info.text, newTile); 
+        }); 
+
     }
+
+
+    newTile.innerHTML += `<img src="images/${object.image}">
+    `;
+    newTile.appendChild(hiddenTile); // hidden paragraph for hover 
     grid.appendChild(newTile); 
 }
 
 function createTiles(dinos, human){
-    dinos.splice(4, 0, human);
-    dinos.forEach((dino) => {createTile(dino)});
+    const middleOfArray = 4; 
+    dinos.splice(middleOfArray, 0, human);
+    dinos.forEach((dino) => {createTile(dino, human)});
 }
 
 
@@ -225,6 +269,21 @@ function hideError(){
     modal.style.display = "none"; 
 }
 
+const getBanners = (object) =>{
+    const bannerIds = [`where-${object.name}`, `when-${object.name}`, `compare-${object.name}`]; 
+    return bannerIds.map((id) => document.getElementById(id) );
+}
+
+const getHTMLMappings = (object, human) =>{
+    return [`<p>The ${object.name} is from: ${object.where}`, 
+            `<p>The ${object.name} was during the time of: ${object.when}`,
+             `
+             <p>${object.compareDiet(human.diet)}
+                ${object.compareWeight(human.weight)}
+                ${object.compareHeight(human.height)}</p>
+            `]; 
+}
+
 const validField = (field) => {return field.length > 0}; 
 
 const submitButton = document.getElementById('btn');
@@ -233,38 +292,43 @@ const modalClose = document.getElementsByClassName("close")[0];
 submitButton.addEventListener('click', function() {
     const ids = ['name', 'feet', 'inches', 'weight', 'diet'];
     const vals = ids.map(getValue);
+
     if (vals.every(validField)){
         const tileObjects = loadNewPage(); // returns the modified objects that are on the 9 by 9 grid 
-        const tiles = getTiles(tileObjects);
         const human = getHuman(); 
 
-        tiles.forEach(function(tile, i){
-            const originalHTMl = tile.innerHTML;
-            let clicked = false; 
-            tile.addEventListener('click', function(){
-                if (tileObjects[i] instanceof Dinosaur 
-                    && !clicked){
-                    tile.innerHTML = `
-                    <h3>Species: ${tileObjects[i].name}</h3>
-                    <h3>Where: ${tileObjects[i].where}</h3>
-                    <h3>When: ${tileObjects[i].when}</h3>
-                    <h3>${tileObjects[i].compareDiet(human.diet)}</h3>
-                    <h3>${tileObjects[i].compareWeight(human.weight)}</h3>
-                    <h3>${tileObjects[i].compareHeight(human.height)}</h3>
-                    `;
-                }
-                else if (tileObjects[i] && clicked){
-                    tile.innerHTML = originalHTMl; 
+        tileObjects.forEach( (tile, i) =>{
 
-                }
-                clicked = !clicked; 
+            const hiddenText = document.getElementById(`hidden-info-${tile.name}`); 
+            hiddenText.style.display = "none"; // doesn't work without this line of code here
 
-            });
+            if (tile instanceof Dinosaur){
+
+                const banners = getBanners(tile); 
+                const htmlMappings = getHTMLMappings(tile, human); 
+                banners.forEach( (banner, j) =>{
+
+                    banner.addEventListener('mouseenter', ()=>{
+                        banner.style.color = 'black';
+                        banner.style.cursor = 'default';
+                        hiddenText.style.display = 'block'; 
+                        hiddenText.innerHTML = htmlMappings[j];
+
+                    });
+
+                    banner.addEventListener('mouseleave', () =>{
+                        banner.style.color = null;
+                        hiddenText.style.display = 'none'; 
+                    })
+
+                });
+            }
             
 
-        });
+        }); 
     }
-    else{
+
+    else{ // one or more invalid fields 
         const modal = document.getElementById("myModal");
         displayError(modal);
     }
